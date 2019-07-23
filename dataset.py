@@ -13,8 +13,13 @@ class PTBDataSet(Dataset):
         self.t = 1e-4
         self.max_window_size = 5
         self.negative_sampling_num = 5
-        self.centers, self.contexts_negatives, self.masks, self.labels = self.load_text()
+
+        self.counter, self.index_to_token, self.token_to_index, self.dataset = self.load_text()
+        self.centers, self.contexts_negatives, self.masks, self.labels = self.data_prepare()
         print(self.centers.shape, self.contexts_negatives.shape, self.masks.shape, self.labels.shape)
+
+    def get_token_num(self):
+        return len(self.index_to_token)
 
     def __len__(self):
         return self.centers.shape[0]
@@ -40,11 +45,16 @@ class PTBDataSet(Dataset):
                   [sentenceN]]
         all tokens in sentences are numbers(indices)
         """
-        dataset = [[token_to_index[token] for token in sentence if token in token_to_index] for sentence in raw_dataset]
-        token_num = sum([len(sentence) for sentence in dataset])
-        sub_dataset = [[token for token in sentence if not self.discard(token, counter, index_to_token, token_num)] for
-                       sentence in
-                       dataset]
+        dataset = [[token_to_index[token] for token in sentence if token in token_to_index] for sentence in
+                   raw_dataset]
+        return counter, index_to_token, token_to_index, dataset
+
+    def data_prepare(self):
+
+        token_num = sum([len(sentence) for sentence in self.dataset])
+        sub_dataset = [
+            [token for token in sentence if not self.discard(token, token_num)] for
+            sentence in self.dataset]
         print('token in sub_dataset', sum([len(sentence) for sentence in sub_dataset]))
         """
         all_centers: [center1, center2, ..., centerN]
@@ -54,7 +64,7 @@ class PTBDataSet(Dataset):
                        [contextsN]]
         """
         all_centers, all_contexts = self.get_centers_contexts(sub_dataset, self.max_window_size)
-        sampling_weights = [counter[token] ** 0.75 for token in token_to_index]
+        sampling_weights = [self.counter[token] ** 0.75 for token in self.token_to_index]
         """
         all_negatives: [[negative1],
                         [negative2],
@@ -66,9 +76,9 @@ class PTBDataSet(Dataset):
         # return all_centers, all_contexts, all_negatives
         # return np.array(all_centers), np.array(all_contexts), np.array(all_negatives)
 
-    def discard(self, token_index, counter, index_to_token, token_num):
+    def discard(self, token_index, token_num):
         return random.uniform(0, 1) < max(
-            [0, 1 - math.sqrt(self.t / (counter[index_to_token[token_index]] / token_num))])
+            [0, 1 - math.sqrt(self.t / (self.counter[self.index_to_token[token_index]] / token_num))])
 
     def get_centers_contexts(self, dataset, max_window_size):
         centers, contexts = [], []
@@ -137,7 +147,7 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_set, batch_size=512, shuffle=True)
     for batch_idx, (center, context_negative, mask, label) in enumerate(train_loader):
         print('center', center.shape)
-        print('context_nagative',context_negative.shape)
+        print('context_nagative', context_negative.shape)
         print('mask', mask.shape)
         print('label', label.shape)
         break
