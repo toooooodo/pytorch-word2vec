@@ -1,4 +1,4 @@
-from dataset import PTBDataSet
+from prepare import PTBDataSet
 from model import SkipGram
 import torch
 from torch import optim, nn
