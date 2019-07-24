@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 embedding_dim = 100
 lr = 5e-3
 batch_size = 512
-epochs = 13
+epochs = 20
 show_top_k = 10
 
 
