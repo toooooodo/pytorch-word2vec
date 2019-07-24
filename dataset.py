@@ -6,13 +6,19 @@ import numpy as np
 
 
 class PTBDataSet(Dataset):
-    def __init__(self):
+    def __init__(self, count_least=5, t=1e-4, max_window_size=5, negative_sampling_num=5):
+        """
+        :param count_least: 为了计算简单，只保留在数据集中至少出现count_least次的词。
+        :param t: 二次采样
+        :param max_window_size: 最大背景窗口
+        :param negative_sampling_num: 对于一对中心词和背景词，随机采样 K 个噪声词
+        """
         super(PTBDataSet, self).__init__()
 
-        self.count_least = 5
-        self.t = 1e-4
-        self.max_window_size = 5
-        self.negative_sampling_num = 5
+        self.count_least = count_least
+        self.t = t
+        self.max_window_size = max_window_size
+        self.negative_sampling_num = negative_sampling_num
 
         self.counter, self.index_to_token, self.token_to_index, self.dataset = self.load_text()
         self.centers, self.contexts_negatives, self.masks, self.labels = self.data_prepare()

@@ -21,3 +21,13 @@ class SkipGram(nn.Module):
         out = torch.bmm(torch.unsqueeze(self.embed_v(center), 1), torch.transpose(self.embed_u(context_negative), 1, 2))
         out = torch.squeeze(out)
         return out
+
+    def get_topk_similar_tokens(self, query_token, index_to_token, token_to_index, device, k=5):
+        x = self.embed_v(torch.LongTensor([token_to_index[query_token]]).to(device))
+        w = torch.Tensor(self.embed_v.weight.cpu()).to(device)
+        # cos [num_embeddings]
+        # cos = torch.squeeze(w @ x) / torch.sqrt(torch.sum(w * w, dim=1) + torch.sum(x * x) + 1e-9)
+        cos = torch.cosine_similarity(x, w, dim=-1)
+        values, indices = torch.topk(cos, k + 1)
+        for i in range(1, k + 1):
+            print(f"{index_to_token[indices[i]]}: sim={values[i]}")
