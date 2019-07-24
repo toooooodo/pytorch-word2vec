@@ -11,7 +11,7 @@ Pytorch version: 1.1.0
 **After 20 epochs, top 5 words closest to "chip" are as follows:**
 
 word | cosine-similarity
-:-|-:
+:-:|:-:
 memory|0.5467423796653748
 intel|0.49802717566490173
 chips|0.4644008278846741
